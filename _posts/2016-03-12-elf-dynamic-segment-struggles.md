@@ -477,7 +477,7 @@ This caused some tools to show wrong APIs. If someone finds a link, let me know 
 
 Thanks for reading!
 
-__UPDATE:__
+__UPDATE 2016/03/13:__
 
 Radare2 [addressed][radare-fix] this issue!
 
