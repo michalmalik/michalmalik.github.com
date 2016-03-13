@@ -477,6 +477,79 @@ This caused some tools to show wrong APIs. If someone finds a link, let me know 
 
 Thanks for reading!
 
+__UPDATE:__
+
+Radare2 [addressed][radare-fix] this issue!
+
+{% highlight radare %}
+$ r2 -v
+radare2 0.10.2-git 10577 @ darwin-little-x86-64 git.0.10.1-121-g1c443ca
+commit: 1c443caccfcfbad0b25dd2c28acb6d3d70d8dd10 build: 2016-03-13
+{% endhighlight %}
+
+![p_offset is 0]({{ site.url }}/assets/dynamic_zero.png)
+
+{% highlight radare %}
+$ r2 -A myprogram
+
+[0x004004a0]> iS
+[Sections]
+idx=00 vaddr=0x004003a0 paddr=0x000003a0 sz=120 vsz=120 perm=----- name=.rela.plt
+idx=01 vaddr=0x00400388 paddr=0x00000388 sz=24 vsz=24 perm=----- name=.rel.plt
+idx=02 vaddr=0x00600990 paddr=0x00000990 sz=120 vsz=120 perm=----- name=.got.plt
+idx=03 vaddr=0x00400040 paddr=0x00000040 sz=448 vsz=448 perm=m-r-x name=PHDR
+idx=04 vaddr=0x00400200 paddr=0x00000200 sz=28 vsz=28 perm=m-r-- name=INTERP
+idx=05 vaddr=0x00400000 paddr=0x00000000 sz=1948 vsz=1948 perm=m-r-x name=LOAD0
+idx=06 vaddr=0x006007a0 paddr=0x000007a0 sz=576 vsz=584 perm=m-rw- name=LOAD1
+idx=07 vaddr=0x006007b8 paddr=0x00000000 sz=464 vsz=464 perm=m-rw- name=DYNAMIC
+idx=08 vaddr=0x0040021c paddr=0x0000021c sz=68 vsz=68 perm=m-r-- name=NOTE
+idx=09 vaddr=0x00400670 paddr=0x00000670 sz=52 vsz=52 perm=m-r-- name=GNU_EH_FRAME
+idx=10 vaddr=0x00000000 paddr=0x00000000 sz=0 vsz=0 perm=m-rw- name=GNU_STACK
+idx=11 vaddr=0x00400000 paddr=0x00000000 sz=64 vsz=64 perm=m-rw- name=ehdr
+
+12 sections
+
+[0x004004a0]> ir
+[Relocations]
+vaddr=0x006009a8 paddr=0x000009a8 type=SET_64 write
+vaddr=0x006009b0 paddr=0x000009b0 type=SET_64 close
+vaddr=0x006009b8 paddr=0x000009b8 type=SET_64 __libc_start_main
+vaddr=0x006009c0 paddr=0x000009c0 type=SET_64 __gmon_start__
+vaddr=0x006009c8 paddr=0x000009c8 type=SET_64 open
+vaddr=0x00600988 paddr=0x00000988 type=SET_64 __gmon_start__
+
+6 relocations
+
+[0x004004a0]> pdf @ main
+╒ (fcn) main 74
+│           ; var int local_0h     @ rbp-0x0
+│           ; var int local_4h     @ rbp-0x4
+│           ; DATA XREF from 0x004004bd (main)
+│           0x00400596      55             push rbp
+│           0x00400597      4889e5         mov rbp, rsp
+│           0x0040059a      4883ec10       sub rsp, 0x10
+│           0x0040059e      be41020000     mov esi, 0x241
+│           0x004005a3      bf64064000     mov edi, 0x400664
+│           0x004005a8      b800000000     mov eax, 0
+│           0x004005ad      e8defeffff     call sym.imp.open
+│           0x004005b2      8945fc         mov dword [rbp - local_4h], eax
+│           0x004005b5      837dfc00       cmp dword [rbp - local_4h], 0
+│       ┌─< 0x004005b9      7e1e           jle 0x4005d9
+│       │   0x004005bb      8b45fc         mov eax, dword [rbp - local_4h]
+│       │   0x004005be      ba05000000     mov edx, 5
+│       │   0x004005c3      be6a064000     mov esi, 0x40066a
+│       │   0x004005c8      89c7           mov edi, eax
+│       │   0x004005ca      e881feffff     call sym.imp.write
+│       │   0x004005cf      8b45fc         mov eax, dword [rbp - local_4h]
+│       │   0x004005d2      89c7           mov edi, eax
+│       │   0x004005d4      e887feffff     call sym.imp.close
+│       │   ; JMP XREF from 0x004005b9 (main)
+│       └─> 0x004005d9      b800000000     mov eax, 0
+│           0x004005de      c9             leave
+╘           0x004005df      c3             ret
+{% endhighlight %}
+
+[radare-fix]: https://github.com/radare/radare2/issues/4302
 [radare-git]: https://github.com/radare/radare2
 [roopre]: https://www.virusbulletin.com/virusbulletin/2014/07/mayhem-hidden-threat-nix-web-servers
 [glibc-dynamic]: https://code.woboq.org/userspace/glibc/elf/rtld.c.html#1025
